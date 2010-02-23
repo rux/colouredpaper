@@ -22,7 +22,7 @@
 
     <application
         android:label="@string/app_name"
-        android:icon="@drawable/ic_launcher_wallpaper">
+        android:icon="@drawable/icon_launcher">
 
         <service
             android:label="@string/app_name"
