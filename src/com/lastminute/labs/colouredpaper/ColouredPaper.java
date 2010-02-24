@@ -17,7 +17,6 @@
 package com.lastminute.labs.colouredpaper;
 
 import android.graphics.Canvas;
-
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.hardware.Sensor;
@@ -25,9 +24,7 @@ import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.os.Handler;
-import android.os.SystemClock;
 import android.service.wallpaper.WallpaperService;
-import android.util.Log;
 import android.view.MotionEvent;
 import android.view.SurfaceHolder;
 
@@ -56,12 +53,12 @@ public class ColouredPaper extends WallpaperService {
     class ColouredPaperEngine extends Engine  implements SensorEventListener {
 
     	private int SMOOTHING = 10;
-    	private float ANGLESMOOTHING = 5.0f;
+    	private float ANGLESMOOTHING = 7.5f;
         private final Paint mPaint = new Paint();
         private float mOffset;
         private float mTouchX = -1;
         private float mTouchY = -1;
-        private long mStartTime;
+        // private long mStartTime;
         private float mCenterX;
         private float mCenterY;
         
@@ -84,9 +81,9 @@ public class ColouredPaper extends WallpaperService {
         private float ya;
         private float za;
         
-        private float theta;
+        
 
-        private final Runnable mDrawCube = new Runnable() {
+        private final Runnable mDrawBackground = new Runnable() {
             public void run() {
                 drawFrame();
             }
@@ -94,16 +91,6 @@ public class ColouredPaper extends WallpaperService {
         private boolean mVisible;
 
         ColouredPaperEngine() {
-            // Create a Paint to draw the lines for our cube
-            final Paint paint = mPaint;
-            paint.setColor(0xffffffff);
-            paint.setAntiAlias(true);
-            paint.setStrokeWidth(2);
-            paint.setStrokeCap(Paint.Cap.ROUND);
-            paint.setStyle(Paint.Style.STROKE);
-
-            mStartTime = SystemClock.elapsedRealtime();
-            
             mSensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
         }
 
@@ -120,7 +107,7 @@ public class ColouredPaper extends WallpaperService {
         @Override
         public void onDestroy() {
             super.onDestroy();
-            mHandler.removeCallbacks(mDrawCube);
+            mHandler.removeCallbacks(mDrawBackground);
             mSensorManager.unregisterListener(this);
         }
 
@@ -130,7 +117,7 @@ public class ColouredPaper extends WallpaperService {
             if (visible) {
                 drawFrame();
             } else {
-                mHandler.removeCallbacks(mDrawCube);
+                mHandler.removeCallbacks(mDrawBackground);
             }
         }
 
@@ -152,7 +139,7 @@ public class ColouredPaper extends WallpaperService {
         public void onSurfaceDestroyed(SurfaceHolder holder) {
             super.onSurfaceDestroyed(holder);
             mVisible = false;
-            mHandler.removeCallbacks(mDrawCube);
+            mHandler.removeCallbacks(mDrawBackground);
         }
 
         @Override
@@ -201,9 +188,9 @@ public class ColouredPaper extends WallpaperService {
             }
 
             // Reschedule the next redraw
-            mHandler.removeCallbacks(mDrawCube);
+            mHandler.removeCallbacks(mDrawBackground);
             if (mVisible) {
-                mHandler.postDelayed(mDrawCube, 1000 / 30);
+                mHandler.postDelayed(mDrawBackground, 1000 / 30);
             }
         }
 
@@ -231,7 +218,7 @@ public class ColouredPaper extends WallpaperService {
         
         void drawBackground(Canvas c) {
         	
-            Color col = new Color();
+            
             
         	red = (SMOOTHING*red + sensorRed) / (SMOOTHING+1);
         	green = (SMOOTHING*green + sensorGreen) / (SMOOTHING+1);
@@ -245,12 +232,12 @@ public class ColouredPaper extends WallpaperService {
         	
         	float hsv[] = new float[3];
         	
-        	col.RGBToHSV(red, green, blue, hsv);
+        	Color.RGBToHSV(red, green, blue, hsv);
         	
         	float hueMod = (orientation + hsv[0]) % 360;
         	
         	float vals[] = {hueMod, hsv[1], hsv[2]};
-        	c.drawColor(col.HSVToColor(vals));
+        	c.drawColor(Color.HSVToColor(vals));
         	
         	// c.drawColor(col.rgb(red , green, blue));
         	
