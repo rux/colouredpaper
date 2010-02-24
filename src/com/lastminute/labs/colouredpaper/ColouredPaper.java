@@ -100,24 +100,24 @@ public class ColouredPaper extends WallpaperService {
 
             // By default we don't get touch events, so enable them.
             setTouchEventsEnabled(true);
-            mSensorManager.registerListener(this, mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER), SensorManager.SENSOR_DELAY_NORMAL);
-            mSensorManager.registerListener(this, mSensorManager.getDefaultSensor(Sensor.TYPE_ORIENTATION), SensorManager.SENSOR_DELAY_NORMAL);
         }
 
         @Override
         public void onDestroy() {
             super.onDestroy();
             mHandler.removeCallbacks(mDrawBackground);
-            mSensorManager.unregisterListener(this);
         }
 
         @Override
         public void onVisibilityChanged(boolean visible) {
             mVisible = visible;
             if (visible) {
+                mSensorManager.registerListener(this, mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER), SensorManager.SENSOR_DELAY_NORMAL);
+                mSensorManager.registerListener(this, mSensorManager.getDefaultSensor(Sensor.TYPE_ORIENTATION), SensorManager.SENSOR_DELAY_NORMAL);
                 drawFrame();
             } else {
                 mHandler.removeCallbacks(mDrawBackground);
+                mSensorManager.unregisterListener(this);
             }
         }
 
