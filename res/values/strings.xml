@@ -1,8 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
-    <skip />
-
-    
-<string name="app_name">Coloured Paper</string>
+  <string name="app_name">Coloured Paper</string>
+  <string name="wallpaper_description">Simple, smooth background colour changes depending on how the phone is held</string>
 </resources>

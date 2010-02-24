@@ -17,9 +17,9 @@
 package com.lastminute.labs.colouredpaper;
 
 import android.graphics.Canvas;
+
 import android.graphics.Color;
 import android.graphics.Paint;
-import android.graphics.Rect;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
@@ -56,6 +56,7 @@ public class ColouredPaper extends WallpaperService {
     class ColouredPaperEngine extends Engine  implements SensorEventListener {
 
     	private int SMOOTHING = 10;
+    	private float ANGLESMOOTHING = 5.0f;
         private final Paint mPaint = new Paint();
         private float mOffset;
         private float mTouchX = -1;
@@ -70,14 +71,20 @@ public class ColouredPaper extends WallpaperService {
         private int green;
         private int blue;
         
+        private float orientation;
+        
         private int sensorRed;
         private int sensorGreen;
         private int sensorBlue;
         
+        private float sensorOrientation;
+        
+       
         private float xa;
         private float ya;
         private float za;
         
+        private float theta;
 
         private final Runnable mDrawCube = new Runnable() {
             public void run() {
@@ -107,6 +114,7 @@ public class ColouredPaper extends WallpaperService {
             // By default we don't get touch events, so enable them.
             setTouchEventsEnabled(true);
             mSensorManager.registerListener(this, mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER), SensorManager.SENSOR_DELAY_NORMAL);
+            mSensorManager.registerListener(this, mSensorManager.getDefaultSensor(Sensor.TYPE_ORIENTATION), SensorManager.SENSOR_DELAY_NORMAL);
         }
 
         @Override
@@ -200,6 +208,25 @@ public class ColouredPaper extends WallpaperService {
         }
 
         
+        float getAngleDifference(float from, float to) {
+            // Get the two distances in size order
+        	float d1 = (from>to)?to:from;
+        	float d2 = (from<to)?to:from;
+            
+            // Get the two distances
+        	float distA = d2-d1;
+        	float distB = d1 + 360-d2;
+            
+            // Get the shortest distance
+        	float minDistance = Math.min(distA, distB);
+            
+            // Which way are we going?
+            boolean direction=distA>distB;
+            if (from>to) direction=!direction;
+            
+            return (direction?-1:1) * minDistance;
+        }
+        
         
         
         void drawBackground(Canvas c) {
@@ -209,8 +236,23 @@ public class ColouredPaper extends WallpaperService {
         	red = (SMOOTHING*red + sensorRed) / (SMOOTHING+1);
         	green = (SMOOTHING*green + sensorGreen) / (SMOOTHING+1);
         	blue = (SMOOTHING*blue + sensorBlue) / (SMOOTHING+1);
-            
-        	c.drawColor(col.rgb(red , green, blue));
+        	
+        	float angleDiff = getAngleDifference(orientation, sensorOrientation);
+        	
+        	orientation = (orientation + angleDiff/ANGLESMOOTHING);
+        	
+        	// Log.d("angle diff", String.valueOf(angleDiff));
+        	
+        	float hsv[] = new float[3];
+        	
+        	col.RGBToHSV(red, green, blue, hsv);
+        	
+        	float hueMod = (orientation + hsv[0]) % 360;
+        	
+        	float vals[] = {hueMod, hsv[1], hsv[2]};
+        	c.drawColor(col.HSVToColor(vals));
+        	
+        	// c.drawColor(col.rgb(red , green, blue));
         	
         }
         
@@ -237,16 +279,22 @@ public class ColouredPaper extends WallpaperService {
 		}
 
 		public void onSensorChanged(SensorEvent event) {
-			// TODO Auto-generated method stub
 			Sensor mySensor = event.sensor;
-			xa = event.values[0];
-			ya = event.values[1];
-			za = event.values[2];
-
-			sensorRed   = (int)  Math.min( 255, Math.abs(-xa*255/10.0) ) ;
-			sensorGreen = (int)  Math.min( 255, Math.abs(-ya*255/10.0) ) ;
-			sensorBlue  = (int)  Math.min( 255, Math.abs(-za*255/10.0) ) ;
 			
+			if (mySensor.getType() == Sensor.TYPE_ACCELEROMETER) {
+			
+				xa = event.values[0];
+				ya = event.values[1];
+				za = event.values[2];
+	
+				sensorRed   = (int)  Math.min( 255, Math.abs(-xa*255/10.0) ) ;
+				sensorGreen = (int)  Math.min( 255, Math.abs(-ya*255/10.0) ) ;
+				sensorBlue  = (int)  Math.min( 255, Math.abs(-za*255/10.0) ) ;
+			}
+			
+			else if (mySensor.getType() == Sensor.TYPE_ORIENTATION) {
+				sensorOrientation = event.values[0];
+			}
 		}
 
     }
